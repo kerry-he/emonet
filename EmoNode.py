@@ -25,7 +25,7 @@ n_expression = 8
 device = 'cpu'
 
 class EmoNode:
-    def __init__(self, cam_name):
+    def __init__(self):
         torch.backends.cudnn.benchmark =  True
 
         # Parameters of the experiments
@@ -44,9 +44,9 @@ class EmoNode:
 
         self.br = CvBridge()
         self.img = None
-        self.img_sub = rospy.Subscriber(cam_name, CompressedImage, self.img_callback, queue_size=1, buff_size=52428800)
+        self.img_sub = rospy.Subscriber("global_camera/compressed", CompressedImage, self.img_callback, queue_size=1, buff_size=52428800)
 
-        self.emo_pub = rospy.Publisher(cam_name + "/emotion", Emotion, queue_size = 10)
+        self.emo_pub = rospy.Publisher("emotion/global", Emotion, queue_size = 10)
         self.viz_pub  = rospy.Publisher("/visualization_marker", Marker, queue_size=1)
 
         self.detector = dlib.get_frontal_face_detector()
@@ -152,8 +152,6 @@ if __name__ == "__main__":
 
     rospy.init_node("emotion_node")
 
-    cam_name = rospy.get_param("emotion_camera")
-
-    emo_node = EmoNode(cam_name)
+    emo_node = EmoNode()
     
     rospy.spin()
