@@ -25,7 +25,7 @@ n_expression = 8
 device = 'cpu'
 
 class EmoNode:
-    def __init__(self):
+    def __init__(self, cam_name):
         torch.backends.cudnn.benchmark =  True
 
         # Parameters of the experiments
@@ -44,9 +44,9 @@ class EmoNode:
 
         self.br = CvBridge()
         self.img = None
-        self.img_sub = rospy.Subscriber("global_camera/compressed", CompressedImage, self.img_callback, queue_size=1, buff_size=52428800)
+        self.img_sub = rospy.Subscriber(cam_name, CompressedImage, self.img_callback, queue_size=1, buff_size=52428800)
 
-        self.emo_pub = rospy.Publisher('global_camera/emotion', Emotion, queue_size = 10)
+        self.emo_pub = rospy.Publisher(cam_name + "/emotion", Emotion, queue_size = 10)
         self.viz_pub  = rospy.Publisher("/visualization_marker", Marker, queue_size=1)
 
         self.detector = dlib.get_frontal_face_detector()
@@ -72,9 +72,19 @@ class EmoNode:
         cx = (x1 + x) / 2.0
         cy = (y1 + y) / 2.0
 
-        size = max(w, h) * 1.0
-        img = img[int(cy-size/2):int(cy+size/2), int(cx-size/2):int(cx+size/2), :]
+        size = max(w, h) * 1.1
+        top = max(int(cy-size/2), 0)
+        bottom = min(int(cy+size/2), img.shape[0])
+        left = max(int(cx-size/2), 0)
+        right = min(int(cx+size/2), img.shape[1])
+
+        img = img[top:bottom, left:right, :]
         img = cv2.resize(img, (image_size,image_size), interpolation = cv2.INTER_AREA)
+        
+        # cv2.imshow("img", img)
+        # if cv2.waitKey(1) & 0xFF == ord('q'):
+        #     return
+
         img = img.transpose((2,0,1))
 
         img = np.expand_dims(img, 0)
@@ -142,6 +152,8 @@ if __name__ == "__main__":
 
     rospy.init_node("emotion_node")
 
-    emo_node = EmoNode()
+    cam_name = rospy.get_param("emotion_camera")
+
+    emo_node = EmoNode(cam_name)
     
     rospy.spin()
