@@ -123,7 +123,7 @@ class EmoNode:
 
         marker.header.frame_id = "/human"
         marker.header.stamp = rospy.Time.now()
-        marker.ns = "emotion"
+        marker.ns = "emotion_global"
 
         # set shape, Arrow: 0; Cube: 1 ; Sphere: 2 ; Cylinder: 3 ; Line strip 4
         marker.type = 9
@@ -142,7 +142,7 @@ class EmoNode:
         marker.color.b = 1.0
         marker.color.a = 1.0
 
-        marker.text = text
+        marker.text = "OAK-D: " + text
 
         self.viz_pub.publish(marker)
             
